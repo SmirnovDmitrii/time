@@ -1,44 +1,44 @@
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 
-type Time = { time: Number };
+import { secondFormatter } from "../../utils";
+
+type Time = { timer: Number; task: string };
 
 function App() {
-  const [play, setPlay] = useState(false);
+  const [play, setPlay] = useState(true);
   const [timer, setTimer] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [task, setTask] = useState("");
   const [timersList, setTimersList] = useState<Time[]>([]);
 
-  const playPauseToggleHandle = () => {
-    setPlay(!play);
-    setPaused(!play);
-  };
+  const playPauseToggleHandle = () => setPlay(!play);
+  const showWarning = () => alert("empty input");
+  const taskChange = (e: ChangeEvent<HTMLInputElement>) =>
+    setTask(e.target.value);
+
   const nextTrackHandle = () => {
+    if (!task) return showWarning();
     setPlay(false);
-    setTimersList([...timersList, { time: timer }]);
+    setTimersList([...timersList, { timer, task }]);
     setTimer(0);
+    setTask("");
   };
+
   useEffect(() => {
-    if (paused) return;
+    if (play) return;
     const intervalId = setTimeout(() => setTimer(timer + 1), 1000);
     return () => clearTimeout(intervalId);
   });
-  const formatSecond = (second: number): string => {
-    let sec = String(Math.abs(Math.floor(second) % 60));
-    let min = String(Math.abs(Math.floor(second / 60) % 60));
-    let hours = String(Math.abs(Math.floor(second / 60 / 60) % 24));
-    if (sec.toString().length === 1) sec = "0" + sec;
-    if (min.toString().length === 1) min = "0" + min;
-    if (hours.toString().length === 1) hours = "0" + hours;
-    return `${hours}:${min}:${sec}`;
-  };
 
   return (
     <div className="App">
-      <h3>{formatSecond(timer)}</h3>
+      <h3>{secondFormatter(timer)}</h3>
       <button onClick={playPauseToggleHandle}>play/pause</button>
       <button onClick={nextTrackHandle}>next track</button>
+      <input type="text" onChange={taskChange} value={task} />
       {timersList.map((item) => (
-        <h6>{formatSecond(Number(item.time))}</h6>
+        <h5>
+          {secondFormatter(Number(item.timer))} {item.task}
+        </h5>
       ))}
     </div>
   );
